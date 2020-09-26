@@ -63,12 +63,10 @@ ffmpeg.ffprobe('./tos-teaser.mp4', (error, metadata) => {
   }
   fileMetadata = metadata;
   audioBitRate = fileMetadata.streams[1].bit_rate;
-  videoCodec = fileMetadata.streams[0].codec_tag_string;
-  audioCodec = fileMetadata.streams[1].codec_tag_string;
+  videoCodec = fileMetadata.streams[0].codec_tag_string; // todo not set
+  audioCodec = fileMetadata.streams[1].codec_tag_string; // todo not set
 });
 
-console.log(`data presented as follows ${audioBitRate} ${videoCodec} ${audioCodec}`);
-console.log('and now ere');
 const proc = spawn('ffmpeg', args);
 
 proc.stderr.setEncoding("utf8");
