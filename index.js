@@ -7,6 +7,7 @@ let audioBitRate = 0;
 let videoCodec = '';
 let audioCodec = '';
 var fileMetadata;
+let videoFrameRate = '';
 const resolutions = [
   '480X320',
   '640X432',
@@ -72,6 +73,8 @@ ffmpeg.ffprobe('./tos-teaser.mp4', (error, metadata) => {
   audioBitRate = fileMetadata.streams[1].bit_rate;
   videoCodec = fileMetadata.streams[0].codec_tag_string; // todo not set
   audioCodec = fileMetadata.streams[1].codec_tag_string; // todo not set
+  videoFrameRateData = fileMetadata.streams[0].r_frame_rate.split('/');
+  videoFrameRate = videoFrameRateData[0] / videoFrameRateData[1];
 });
 
 const proc = spawn('ffmpeg', args);
@@ -99,7 +102,7 @@ proc.on('close', (code) => {
     resolutions.map((variant, index) => {
       let bandwidth = Math.floor(1.10 * (audioBitRate + bitrates[index] * 1000));
       let resolution = variant;
-      const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec}"\n`;
+      const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec},FRAME-RATE=${videoFrameRate}"\n`;
       fs.appendFileSync('master.m3u8', streamInfo, function (error, data) { console.error(error); });
       fs.appendFileSync('master.m3u8', `v${index}/prog_index.m3u8\n\n`, function (error, data) { console.error(error); });
     });
@@ -109,9 +112,8 @@ proc.on('close', (code) => {
 });
 
 // todo Q are streams fixed i.e is 0 always video and 1 audio ?
-// todo add FPS to manifest file
 // todo add average bandwith calculations
-// todo handle file errors that occur
+// todo handle file errors that occur better
 // todo see if filename can be streamed, re-streamed or obtained from a url
-
+// todo how do you calculate average bandwidth
 // v:2,a:2 v:3,a:3 v:4,a:4
