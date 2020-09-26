@@ -112,6 +112,6 @@ dist
 .vscode-test
 
 # End of https://www.toptal.com/developers/gitignore/api/node
-.mp4
-.ts
-.m3u8
+*.mp4
+*.ts
+*.m3u8
