@@ -113,3 +113,5 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 .mp4
+.ts
+.m3u8
