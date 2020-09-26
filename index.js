@@ -14,9 +14,10 @@ const resolutions = [
   '1024X768',
   '1920X1080'
 ];
+
 const bitrates = [1100, 3000, 4000, 5000, 6000];
 
-const args = [
+var args = [
   '-y', // overwrite existing files
   '-i', filename,
   '-c:a', 'copy',
@@ -56,12 +57,18 @@ const args = [
   'v%v/prog_index.m3u8'
 ];
 
+var args2 = [
+  '-i', filename,
+  '-hide_banner'
+];
+
 ffmpeg.ffprobe('./tos-teaser.mp4', (error, metadata) => {
   if (error) {
     console.log('cannot read file information used to generate manifest');
     process.exit(1);
   }
   fileMetadata = metadata;
+  console.log(fileMetadata);
   audioBitRate = fileMetadata.streams[1].bit_rate;
   videoCodec = fileMetadata.streams[0].codec_tag_string; // todo not set
   audioCodec = fileMetadata.streams[1].codec_tag_string; // todo not set
@@ -69,35 +76,32 @@ ffmpeg.ffprobe('./tos-teaser.mp4', (error, metadata) => {
 
 const proc = spawn('ffmpeg', args);
 
-proc.stderr.setEncoding("utf8");
-proc.stderr.on('data', (data) => {
-  console.log('there was an error reading output');
-  console.log(data);
-  process.exit(1);
-});
-
 proc.stdout.on('data', (data) => {
-  console.log(data);
-  process.exit(1);
+  console.log(` correct data is ${data}`);
 })
 
+proc.stderr.setEncoding("utf8");
+proc.stderr.on('data', (data) => {
+  console.error(`error is >>>> ${data} <<<<`);
+});
+
 proc.on('close', (code) => {
-  console.log('we are now here');
   if (code === 0) {
     // no error occurred, generate manifest
-    const intro = '#EXTM3U';
-    const version = '#EXT-X-VERSION:3';
-    fs.writeFile('master.m3u8', intro, (error) => {
+    const intro = '#EXTM3U\n';
+    const version = '#EXT-X-VERSION:3\n';
+    fs.writeFileSync('master.m3u8', intro, function (error, data) {
       if (error) {
         console.log('there was an error writing to that file');
       }
     });
-    fs.writeFile('master.m3u8', version);
+    fs.appendFileSync('master.m3u8', version, function (error, data) { console.error(error); });
     resolutions.map((variant, index) => {
-      let bandwidth = 1.10 * (audioBitRate + bitrates[index] * 1000);
+      let bandwidth = Math.floor(1.10 * (audioBitRate + bitrates[index] * 1000));
       let resolution = variant;
-      const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec}"`;
-      fs.writeFile('master.m3u8', streamInfo);
+      const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec}"\n`;
+      fs.appendFileSync('master.m3u8', streamInfo, function (error, data) { console.error(error); });
+      fs.appendFileSync('master.m3u8', `v${index}/prog_index.m3u8\n\n`, function (error, data) { console.error(error); });
     });
   } else {
     console.log(`code was ${code}`);
