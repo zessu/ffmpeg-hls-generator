@@ -3,6 +3,7 @@ const fs = require('fs');
 const ffmpeg = require('fluent-ffmpeg');
 const inputArguments = process.argv.slice(2);
 const filename = inputArguments[0];
+const hsl_time = inputArguments[1] ? inputArguments[1] : 6; // 6 is default
 let audioBitRate = 0;
 let videoCodec = '';
 let audioCodec = '';
@@ -56,9 +57,9 @@ var args = [
   '-var_stream_map', "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3 v:4,a:4",
   // '-master_pl_name', 'master.m3u8', // create playlist manually
   '-f', 'hls',
-  '-hls_time', '6',
+  '-hls_time', hsl_time,
   '-hls_list_size', '0',
-  '-hls_segment_filename', "v%v/fileSequence%d.ts",
+  '-hls_segment_filename', `${hsl_time}-second-segments/v%v/fileSequence%d.ts`,
   'v%v/prog_index.m3u8'
 ];
 
@@ -109,6 +110,7 @@ proc.on('close', (code) => {
 
 // todo Q are streams fixed i.e is 0 always video and 1 audio ?
 // todo add average bandwith calculations
-// todo handle file errors that occur better
+// todo do one of those extras
+// todo research on handling file errors
 // todo see if filename can be streamed, re-streamed or obtained from a url
-// todo how do you calculate average bandwidth
+// todo convert into self sufficient script without needing anything external
