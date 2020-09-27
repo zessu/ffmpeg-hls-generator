@@ -37,30 +37,30 @@ var args = [
   '-s:v:0', resolutions[0], // set resolution
   '-c:v:0', 'libx264', // set codec
   '-b:v:0', `${bitrates[0]}k`, // set bitrate
+
   '-s:v:1', resolutions[1],
   '-c:v:1', 'libx264',
   '-b:v:0', `${bitrates[1]}k`,
+
   '-s:v:2', resolutions[2],
   '-c:v:2', 'libx264',
   '-b:v:2', `${bitrates[2]}k`,
+
   '-s:v:3', resolutions[3],
   '-c:v:3', 'libx264',
   '-b:v:3', `${bitrates[3]}k`,
+
   '-s:v:4', resolutions[4],
   '-c:v:4', 'libx264',
   '-b:v:4', `${bitrates[4]}k`,
+
   '-var_stream_map', "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3 v:4,a:4",
-  // '-master_pl_name', 'master.m3u8', // create playlist manually
+  '-master_pl_name', 'master.m3u8', // create playlist manually
   '-f', 'hls',
   '-hls_time', '6',
   '-hls_list_size', '0',
   '-hls_segment_filename', "v%v/fileSequence%d.ts",
   'v%v/prog_index.m3u8'
-];
-
-var args2 = [
-  '-i', filename,
-  '-hide_banner'
 ];
 
 ffmpeg.ffprobe('./tos-teaser.mp4', (error, metadata) => {
@@ -69,7 +69,6 @@ ffmpeg.ffprobe('./tos-teaser.mp4', (error, metadata) => {
     process.exit(1);
   }
   fileMetadata = metadata;
-  console.log(fileMetadata);
   audioBitRate = fileMetadata.streams[1].bit_rate;
   videoCodec = fileMetadata.streams[0].codec_tag_string; // todo not set
   audioCodec = fileMetadata.streams[1].codec_tag_string; // todo not set
@@ -89,26 +88,26 @@ proc.stderr.on('data', (data) => {
 });
 
 proc.on('close', (code) => {
-  if (code === 0) {
-    // no error occurred, generate manifest
-    const intro = '#EXTM3U\n';
-    const version = '#EXT-X-VERSION:3\n';
-    fs.writeFileSync('master.m3u8', intro, function (error, data) {
-      if (error) {
-        console.log('there was an error writing to that file');
-      }
-    });
-    fs.appendFileSync('master.m3u8', version, function (error, data) { console.error(error); });
-    resolutions.map((variant, index) => {
-      let bandwidth = Math.floor(1.10 * (audioBitRate + bitrates[index] * 1000));
-      let resolution = variant;
-      const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec},FRAME-RATE=${videoFrameRate}"\n`;
-      fs.appendFileSync('master.m3u8', streamInfo, function (error, data) { console.error(error); });
-      fs.appendFileSync('master.m3u8', `v${index}/prog_index.m3u8\n\n`, function (error, data) { console.error(error); });
-    });
-  } else {
-    console.log(`code was ${code}`);
-  }
+  // if (code === 0) {
+  //   // no error occurred, generate manifest
+  //   const intro = '#EXTM3U\n';
+  //   const version = '#EXT-X-VERSION:3\n';
+  //   fs.writeFileSync('master.m3u8', intro, function (error, data) {
+  //     if (error) {
+  //       console.log('there was an error writing to that file');
+  //     }
+  //   });
+  //   fs.appendFileSync('master.m3u8', version, function (error, data) { console.error(error); });
+  //   resolutions.map((variant, index) => {
+  //     let bandwidth = Math.floor(1.10 * (audioBitRate + bitrates[index] * 1000));
+  //     let resolution = variant;
+  //     const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec}",FRAME-RATE=${videoFrameRate}\n`;
+  //     fs.appendFileSync('master.m3u8', streamInfo, function (error, data) { console.error(error); });
+  //     fs.appendFileSync('master.m3u8', `v${index}/prog_index.m3u8\n\n`, function (error, data) { console.error(error); });
+  //   });
+  // } else {
+  //   console.log(`code was ${code}`);
+  // }
 });
 
 // todo Q are streams fixed i.e is 0 always video and 1 audio ?
@@ -117,3 +116,5 @@ proc.on('close', (code) => {
 // todo see if filename can be streamed, re-streamed or obtained from a url
 // todo how do you calculate average bandwidth
 // v:2,a:2 v:3,a:3 v:4,a:4
+
+// 1347534
