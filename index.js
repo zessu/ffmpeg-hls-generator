@@ -21,7 +21,6 @@ const bitrates = [1100, 3000, 4000, 5000, 6000];
 var args = [
   '-y', // overwrite existing files
   '-i', filename,
-  '-c:a', 'copy',
   '-g', '72',
   '-keyint_min', '72',
   '-map', '0:0',
@@ -53,9 +52,9 @@ var args = [
   '-s:v:4', resolutions[4],
   '-c:v:4', 'libx264',
   '-b:v:4', `${bitrates[4]}k`,
-
+  '-c:a', 'copy',
   '-var_stream_map', "v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3 v:4,a:4",
-  '-master_pl_name', 'master.m3u8', // create playlist manually
+  // '-master_pl_name', 'master.m3u8', // create playlist manually
   '-f', 'hls',
   '-hls_time', '6',
   '-hls_list_size', '0',
@@ -88,26 +87,24 @@ proc.stderr.on('data', (data) => {
 });
 
 proc.on('close', (code) => {
-  // if (code === 0) {
-  //   // no error occurred, generate manifest
-  //   const intro = '#EXTM3U\n';
-  //   const version = '#EXT-X-VERSION:3\n';
-  //   fs.writeFileSync('master.m3u8', intro, function (error, data) {
-  //     if (error) {
-  //       console.log('there was an error writing to that file');
-  //     }
-  //   });
-  //   fs.appendFileSync('master.m3u8', version, function (error, data) { console.error(error); });
-  //   resolutions.map((variant, index) => {
-  //     let bandwidth = Math.floor(1.10 * (audioBitRate + bitrates[index] * 1000));
-  //     let resolution = variant;
-  //     const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec}",FRAME-RATE=${videoFrameRate}\n`;
-  //     fs.appendFileSync('master.m3u8', streamInfo, function (error, data) { console.error(error); });
-  //     fs.appendFileSync('master.m3u8', `v${index}/prog_index.m3u8\n\n`, function (error, data) { console.error(error); });
-  //   });
-  // } else {
-  //   console.log(`code was ${code}`);
-  // }
+  if (code === 0) {
+    // no error occurred, generate manifest
+    const intro = '#EXTM3U\n';
+    const version = '#EXT-X-VERSION:3\n';
+    fs.writeFileSync('master.m3u8', intro, function (error, data) {
+      if (error) {
+        console.log('there was an error writing to that file');
+      }
+    });
+    fs.appendFileSync('master.m3u8', version, function (error, data) { console.error(error); });
+    resolutions.map((variant, index) => {
+      let bandwidth = Math.floor(1.10 * (audioBitRate + bitrates[index] * 1000));
+      let resolution = variant;
+      const streamInfo = `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution},CODECS="${videoCodec},${audioCodec}",FRAME-RATE=${videoFrameRate}\n`;
+      fs.appendFileSync('master.m3u8', streamInfo, function (error, data) { console.error(error); });
+      fs.appendFileSync('master.m3u8', `v${index}/prog_index.m3u8\n\n`, function (error, data) { console.error(error); });
+    });
+  }
 });
 
 // todo Q are streams fixed i.e is 0 always video and 1 audio ?
@@ -115,6 +112,3 @@ proc.on('close', (code) => {
 // todo handle file errors that occur better
 // todo see if filename can be streamed, re-streamed or obtained from a url
 // todo how do you calculate average bandwidth
-// v:2,a:2 v:3,a:3 v:4,a:4
-
-// 1347534
