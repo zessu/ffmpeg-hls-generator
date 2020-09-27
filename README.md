@@ -40,3 +40,5 @@ Configure your client to ask for different video resolutions and/or file sizes d
 [ffmpeg](https://www.ffmpeg.org/ffmpeg-all.html#Video-Options)
 
 [ffmpeg quick guide](https://opensource.com/article/17/6/ffmpeg-convert-media-file-formats)
+
+[video transmuxing](https://blog.stackpath.com/transmuxing/)
